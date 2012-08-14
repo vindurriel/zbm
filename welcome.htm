@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link type="text/css" href="/the.css" rel="stylesheet"></link>
+		<style type="text/css">
+			.slide-box {width:64px;  overflow:hidden;}
+			.slide {margin: 0px;padding: 0px; width: 10em; margin-left:-67px;}
+			body{
+				background:#eee;
+				font-size: 1em;
+				padding-left: 30%;
+				padding-right: 30%;
+				padding-top: 20px;
+				width: 40%;
+			}
+
+			input,select {height:15;margin-top:10px;display: block;}
+			.button {width:64px;height:32px;margin:0px;padding:0px; border-width:0px;}
+			.hidden {display:none}
+			.block {display:block}
+			.center {margin: auto;max-width: 15em}
+			.alert {color: red;margin-top: 1em;}
+		</style>
+		<title>欢迎</title>
+		<script type="text/javascript" src="/js/jquery-1.7.2.min.js" ></script>
+		<script type="text/javascript" src="/js/easing.js" ></script>
+		<script type="text/javascript" src="ajax.js"></script>
+	</head>
+	<body onload="loadUsers()">
+		<form id="login" class="center" onsubmit="return login()"   action="validate.py">
+			<select name="username"  id="username">
+				<option disabled selected style="display:none;" value="">您是:</option>
+			</select>
+			<div id="div_pw">
+				<input type="password" name="password"  placeholder="密码" id="password" maxlength="100" />
+			</div>
+			<div id="div_register">
+				<input type="text" id="input_new_username" placeholder="用户名"    value=""/>
+				<input type="password" id="input_new_password" placeholder="密码"    value=""/>
+			</div>
+			<div class="slide-box"  style="margin-top:10px" >
+				<div  class="slide">
+					<input type="submit"  id="btn_register" value="注册"  class="button">
+					<input type="submit"  id="btn_login" value="登录"  class="button">
+				</div>
+			</div>
+			<div id="msg" class="alert"/>
+		</form>
+		<div id="div_new_user">
+		</div>
+	</body>
+</html>
