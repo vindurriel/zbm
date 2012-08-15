@@ -45,6 +45,7 @@ class dish:
 		userid=web.cookies().get('u')
 		if not userid:
 			raise web.seeother('/')
+		web.debug(userid)
 		username="Anonymous"
 		d=db.select('user',what='username',where='rowid=%s'%userid).list()
 		if len(d):
@@ -54,10 +55,8 @@ class dish:
 		dishes=loadDish()
 		admin_fn=[]
 		nav_item="<a class='nav-item' href='%href%'>%name%</a>"
-
 		if(username.decode("utf-8") in (u"admin",u"杨帆")):
-			admin_fn.append(fill(nav_item,{"name":"修改密码","href":"chpwd.htm"}))
-			admin_fn.append(fill(nav_item,{"name":"编辑菜单","href":"dish.htm"}))
+			admin_fn.append(fill(nav_item,{"name":"编辑菜单","href":"/dishmod"}))
 		admin_fn='\n'.join(admin_fn)
 		line='vendors = %s'%to_json(vendors)
 		global_vars.append(line)
@@ -68,48 +67,3 @@ class dish:
 		t=time.time()
 		render=web.template.render('.\\template',globals=locals())
 		return render.dish()
-	def old(self):
-		import cgi
-		fields=cgi.FieldStorage()
-		userid=None
-		if "u" in fields :
-			try:userid=int(fields["u"].value)
-			except:go_login()
-		import Cookie
-		import os
-		cookies = Cookie.SimpleCookie(os.environ.get("HTTP_COOKIE",""))
-		u=None
-		if cookies.has_key("u"):
-			try:u=int(cookies["u"].value)
-			except:go_login()
-		if userid!=u:go_login()
-
-		username="Anonymous"
-		import db
-		d=db.query('select username from user where rowid=%d'%userid)
-		if len(d):
-			username=d[0].username.encode("utf-8")
-		global_vars=[]
-		vendors=loadVendor()
-		dishes=loadDish()
-		admin_fn=[]
-		nav_item="<a class='nav-item' href='%href%'>%name%</a>"
-		if(username.decode("utf-8") in (u"admin",u"杨帆")):
-			admin_fn.append(fill(nav_item,{"name":"修改密码","href":"chpwd.htm"}))
-			admin_fn.append(fill(nav_item,{"name":"编辑菜单","href":"dish.htm"}))
-		admin_fn='\n'.join(admin_fn)
-
-
-		line='vendors = %s'%to_json(vendors)
-		global_vars.append(line)
-		line='dishes = %s'%to_json(dishes)
-		global_vars.append(line)
-		global_vars="\n".join(global_vars)
-		import time
-		dic={
-			'username':username,
-			'global_vars':global_vars,
-			'admin_fn':admin_fn,
-			't':str(time.time()),
-			'userid':str(userid),
-		}

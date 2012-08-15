@@ -1,8 +1,7 @@
 props="name price type unit vendor zid".split(' ');
 $(document).ready(function() {
-	$().UItoTop({'text':'返回顶端', easingType: 'easeOutQuart','min':100 });
 	$('.confirm-edit').click(confirmEdit);
-	$.get("dish.py",function(data){showDishes(data)});
+	showDishes();
 });
 function edit()
 {
@@ -19,7 +18,7 @@ function confirmEdit()
 		var val=$("#edit-"+props[i]).val();
 		data[props[i]]=val;
 	};
-	$.post("dish.py",data,function(d){
+	$.post("/dishmod",data,function(d){
 		if(d.indexOf('error')==0){
 			$('#msg').text(d);
 			return;
@@ -59,12 +58,11 @@ function showItem(x){
 	$('.blockOverlay').click($.unblockUI); 
 }
 dishes={};
-dd=null;
-function showDishes(data){
-	data=data.replace(/None/g,'null')
-	dd=eval(data);
-	for(var i=0;i<dd.length;i++) {
-		var d=dd[i];
+function showDishes(){
+	if(typeof dishdata===undefined)
+		return;
+	for(var i=0,len=dishdata.length;i<len;i++) {
+		var d=dishdata[i];
 		dishes[d.rowid]=d;
 		$("#menu").append("<tr class='dish-item' id='"+d.rowid+"'></tr>")
 		var tr=$("#menu tr:last")

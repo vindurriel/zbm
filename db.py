@@ -3,7 +3,6 @@ con,c=None,None
 _dbpath=r".\menu.db"
 def connect(dbpath=_dbpath):
 	global con,c
-	if c != None:return
 	import sqlite3
 	con=sqlite3.connect(dbpath)
 	c=con.cursor()
@@ -14,14 +13,13 @@ def close():
 		con.close()
 		c=None
 def getattrs(dbname):
-	global c
-	if c==None:
-		connect()
+	connect()
 	try:
 		c.execute('select * from [%s]'%dbname)
 		return [x[0] for x in c.description]
 	except Exception, e:
 		return []
+	close()
 class DbObject(object):
 	def __init__(self):
 		self._dic={}
@@ -31,9 +29,7 @@ class DbObject(object):
 	def as_dic(self):
 		return self._dic
 def query(cmd):
-	global c
-	if c==None:
-		connect()
+	connect()
 	res=[]
 	try:
 		c.execute(cmd)

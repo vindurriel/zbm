@@ -1,0 +1,7 @@
+/ welcome
+/user/([^/]+) user
+/dish dish
+/dishmod dishmod
+/chpwd chpwd
+/history history
+/view view

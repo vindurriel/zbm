@@ -1,18 +1,24 @@
 #encoding=utf-8
-def locked():
-	try:
-		with file("lock") as lock:
-			if(lock.read()=="1"):
-				return True
-	except Exception,e:pass
-	return False
-def printf(x=""):
-	global fout
-	print x
-	fout+=x+"\n"
-fout=""
-print( 'Content-Type: text/html')
-print
+from utils import *
+db=web.database(dbn='sqlite',db='menu.db')
+class view:
+	def GET(self):
+		title="订餐单"
+		js=[]
+		js.append([])
+		return render('view',locals())
+# def locked():
+# 	try:
+# 		with file("lock") as lock:
+# 			if(lock.read()=="1"):
+# 				return True
+# 	except Exception,e:pass
+# 	return False
+# def printf(x=""):
+# 	global fout
+# 	print x
+# 	fout+=x+"\n"
+
 def getPrice(dishid):
 	global prices
 	return float(prices[dishid])
@@ -33,8 +39,8 @@ def loadVendor(c):
 	items=c.fetchall()
 	vendors=[(i[0],i[1])for i  in items]
 	return vendors
-import time
 def getTime(t=None):
+	import time
 	if not t:t=time.time()
 	res=time.strftime("%Y-%m-%d-",time.localtime(t))
 	ampm=0
@@ -48,9 +54,6 @@ def getOrdersByTime(t=None):
 	#import cgi
 	#fields=cgi.FieldStorage()
 	t=getTime()
-	import sqlite3
-	con=sqlite3.connect(r".\menu.db")
-	c=con.cursor()
 	orders=[]
 	prices={}
 	usernames={}
@@ -72,7 +75,7 @@ def getOrdersByTime(t=None):
 		return (orders,usernames,dishnames,prices,vendors,usernames.keys(),dishnames.keys())
 	else:
 		return None,None,None,None,None,None,None
-(orders,usernames,dishnames,prices,vendors,users,dishes)=getOrdersByTime()
+# (orders,usernames,dishnames,prices,vendors,users,dishes)=getOrdersByTime()
 def getOrdersByUserid(userid):
 	global orders
 	res=[]
@@ -143,17 +146,18 @@ def view():
 			printf( "<br>")
 	printf('<hr>')
 #head
-printf( "<head>")
-printf( '<meta http-equiv="Content-Type" content="text/html;charset=utf-8">')
-print '<script type="text/javascript" src="ajax.js" ></script>'
-printf( "<style></style>")
-printf( '<title>查看订餐单</title>')
-printf( "</head>")
-printf( "<body>")
-view()
+# print( 'Content-Type: text/html')
+# print
+# printf( "<head>")
+# printf( '<meta http-equiv="Content-Type" content="text/html;charset=utf-8">')
+# print '<script type="text/javascript" src="ajax.js" ></script>'
+# printf( "<style></style>")
+# printf( '<title>查看订餐单</title>')
+# printf( "</head>")
+# printf( "<body>")
+# view()
 
-print '<a  href="main.py">返回</a>'
-if not locked() and orders: print '  <input type="button" onclick="lock(1)" value="打电话"/>'
-printf( '</body>')
-f=file("./result.htm","w")
-f.write(fout)
+# print '<a  href="main.py">返回</a>'
+# printf( '</body>')
+# f=file("./result.htm","w")
+# f.write(fout)

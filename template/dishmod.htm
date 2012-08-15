@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link type="text/css" href="/static/css/the.css" rel="stylesheet"></link>
+		<style type="text/css">
+			body{
+				background:#eee;
+				font-size: 1em;
+				padding-left: 10%;
+				padding-right: 10%;
+				padding-top: 20px;
+				width: 80%;
+			}
+			.attr-val {font-size:1em;text-align:right;width: 50%;}
+			.attr-key {font-size:1em;text-align:left;width: 50%}
+			a{
+				color:black
+			}
+		</style>
+		<title>菜单</title>
+		<script type="text/javascript" src="/static/js/jquery-1.7.2.min.js" ></script>
+		<script type="text/javascript" src="/static/js/jquery.blockUI.js" ></script>
+		<script type="text/javascript" src="/static/js/dishmod.js"></script>
+		<script type="text/javascript">
+$dishdata
+		</script>
+	</head>
+	<body >
+		<a href="/" id="topmost" >返回</a>
+		<h1 >菜单</h1>
+		<table id="menu"></table>
+		<div id="div-edit" style="display:none;text-align:left">
+			<table id="table-edit" width="100%"></table>
+			<input value="确认" class="button confirm-edit" style="width: 5em"/>
+			<span id="msg"></span>
+		</div>
+	</body>
+</html>
