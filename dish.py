@@ -1,5 +1,5 @@
 #encoding=utf-8
-import web
+from utils import *
 db=web.database(dbn='sqlite',db='menu.db')
 def fill(html,dic):
 	import re
@@ -21,13 +21,6 @@ def loadDish():
 			if os.path.isfile(path):
 				x.imgsrc=path.replace('\\','/')
 	return items
-
-def go_login():
-	print "Status: 302 Found"
-	print "Location: welcome.htm"
-	print
-	exit()
-
 def locked():
 	try:
 		with file("lock") as lock:
@@ -39,13 +32,12 @@ def to_json(raw):
 	import json
 	return json.dumps(raw,sort_keys=True,indent=2).replace("\\n","")
 class dish:
-	def POST(self):
-		return self.GET()
-	def GET(self):
-		userid=web.cookies().get('u')
+	def GET(self,**cmd):
+		userid=getUserId()
 		if not userid:
 			raise web.seeother('/')
-		web.debug(userid)
+		if cmd=="loadOrder":
+			return self.loadOrder()
 		username="Anonymous"
 		d=db.select('user',what='username',where='rowid=%s'%userid).list()
 		if len(d):

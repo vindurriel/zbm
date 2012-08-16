@@ -1,23 +1,18 @@
-tpl_vendor='h2{vendor}'
-tpl_dish='p{!qty! !unit! !name!}'
 $(document).ready ->
-	cont=$('#wrapper')
-	for time,dishes of data
-		$.zen(tpl_time,{time:parseTime(time)}).appendTo(cont)
-		for dish in dishes
-			$.zen(tpl_dish,{
-				name:dish.name,
-				qty:dish.qty,
-				unit:dish.unit
-			}).appendTo(cont)
-parseTime=(s)->
-	s=s.split("-")
-	if s[-1]=="0" 
-		s[-1]="中午"
-	else
-		s[-1]="晚上"
-	if s[1][0]=="0"
-		s[1]=s[1][1..]
-	if s[2][0]=="0"
-		s[2]=s[2][1..]
-	s= "#{s[0]}年#{s[1]}月日"
+	cont=$('#main')
+	if not data? 
+		alert 'data not found'
+		return
+	tpl1 = "h1{!vendorname! 共!sum!元}
++aside{!contact!}
++!for:dishes!article{!qty! !unit! !dishname!}"
+
+	tpl2 = "h1{!username! 共!sum!元}
++!for:dishes!article{!qty! !unit! !dishname!}"
+	for vendorid of data.vendors
+		vendor=data.vendors[vendorid]
+		$.zen(tpl1,vendor).appendTo cont
+	for userid of data.users
+		user=data.users[userid]
+		$.zen(tpl2,user).appendTo cont
+	return

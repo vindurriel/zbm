@@ -1,6 +1,7 @@
 / welcome
-/user/([^/]+) user
+/user/?([^/]*) user
 /dish dish
+/order order
 /dishmod dishmod
 /chpwd chpwd
 /history history
