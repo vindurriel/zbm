@@ -1,4 +1,4 @@
-/ welcome
+/ welcome welcome
 /user/?([^/]*) user
 /dish dish
 /order order
@@ -6,3 +6,6 @@
 /chpwd chpwd
 /history history
 /view view
+/model  model
+/model/?(.+)  model
+/search/(.+) model.search
