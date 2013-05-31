@@ -99,12 +99,7 @@ click = (d) ->
   if d.type=="expandRead" or d.type=="referData"
     window.open if d.url? then d.url else d.name
     return
-  if r.ctrlPressed
-    d.children = []  unless d.children
-    d.children.push
-      name: "机器学习"
-      size: 1
-  else if r.shiftPressed
+  if r.shiftPressed
     d.parent.children.remove d  if d.parent?
   else if r.altPressed
     if d.children
@@ -113,7 +108,7 @@ click = (d) ->
     else
       d.children = d._children
       d._children = null
-  else
+  else if r.ctrlPressed
     d.isSelected = false  if not d.isSelected
     d.isSelected = not d.isSelected
     if d.isSelected
@@ -199,4 +194,3 @@ r.colors =
 draw
   "name":document.title,
   "size":100,
-# d3.json "/static/javascripts/simple.json", draw

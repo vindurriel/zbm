@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html  >
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>$key</title>
+		<link rel="stylesheet" href="/static/stylesheets/style.css">
+		<script src="/static/javascripts/jquery-2.0.2.min.js" charset="utf-8"></script>
+		<script src="/static/javascripts/d3.v3.js" charset="utf-8"></script>
+		<link rel="stylesheet" href="/static/css/the.css">
+		<link rel="stylesheet" href="/static/stylesheets/style_net.css">
+		<style type="text/css">
+			.node {
+				cursor: pointer;
+				stroke: #000;
+				stroke-width: .5px;
+			}
+			.link {
+				fill: none;
+				stroke: #000;
+				stroke-width: 1px;
+			}
+			.tip{
+				margin-left:-120px;  
+				font-size:20px;
+				display: none
+			}
+			.notclickable{
+				pointer-events:none
+			}
+			.spin {
+				width:150px;
+				height:150px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="tip" class="tip">
+			<p>点击 = 选中节点</p>
+			<p>ctrl+点击 = 添加一个孩子节点</p>
+			<p>shift+点击 = 删除当前节点</p>
+			<p>alt+点击 = 收缩/扩展节点</p>
+		</div>
+		<input type="button" id="btn_save" class="editbtn button" value="保存" >
+		<div id="container"/>
+		<script src="/static/javascripts/forced_graph_view.js"></script>
+	</body>
+</html>

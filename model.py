@@ -2,11 +2,29 @@
 import web
 from utils import *
 # render=web.template.render('.\\template')
+def get_file_name(name):
+	return u".\\static\\files\\{0}.json".format(name)
 class model:
-    def GET(self,key="机器学习"):
-		print "#####",key
+	def GET(self,key="机器学习"):
+		print "###model.get##",key
 		render=web.template.render('.\\template',globals=locals())
 		return render.model()
+	def POST(self):
+		import json
+		data=json.loads(web.data())
+		print "###model.post##"
+		file(get_file_name(data["name"]),"w").write(json.dumps(data))
+		return "ok"
+class load:
+	def GET(self,key="机器学习"):
+		web.header('Content-Type', 'application/json')
+		import os,json
+		fname=get_file_name(key)
+		res={}
+		if not os.path.isfile(fname):
+			return json.dumps({"error":"json file not found"})
+		raw=file(fname,"r").read()
+		return raw
 		
 class search:
 	def do_search(self,key,serviceType):
@@ -50,11 +68,13 @@ class search:
 		import json
 		web.header('Content-Type', 'application/json')
 		self.result={}
-		names=set([(x,True) for x in web.input().children.split("||")])
 		self.do_search(key,"baiduBaikeCrawler")
 		self.do_search(key,"hudongBaikeCrawler")
-		for x in set(web.input().children.split("||")):
-			if x in self.result:
-				del self.result[x]
+		if hasattr(web.input(),"children"):
+			for x in set(web.input().children.split("||")):
+				if x in self.result:
+					del self.result[x]
 		res=self.result.values()
+		for x in res:
+			print x["name"]
 		return json.dumps(res)
