@@ -6,13 +6,13 @@ def get_file_name(name):
 	return u".\\static\\files\\{0}.json".format(name)
 class model:
 	def GET(self,key="机器学习"):
-		print "###model.get##",key
+		# print "###model.get##",key
 		render=web.template.render('.\\template',globals=locals())
 		return render.model()
 	def POST(self):
 		import json
 		data=json.loads(web.data())
-		print "###model.post##"
+		# print "###model.post##"
 		file(get_file_name(data["name"]),"w").write(json.dumps(data))
 		return "ok"
 class load:
@@ -76,5 +76,6 @@ class search:
 					del self.result[x]
 		res=self.result.values()
 		for x in res:
-			print x["name"]
+			pass
+			# print x["name"]
 		return json.dumps(res)
