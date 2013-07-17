@@ -29,7 +29,7 @@ class load:
 		
 class search:
 	def do_search(self,key,serviceType):
-		node_prefix=u"知识点:"
+		node_prefix=u"知识点::"
 		url='http://192.168.4.228:8080/ContentService/CrawledIndex?wsdl'
 		client = suds.client.Client(url)
 		pageInfo=client.factory.create('pageInfo')
