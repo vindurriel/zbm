@@ -12,16 +12,19 @@ draw = (json) ->
   r.highlights.push "n_"+r.root.name
   r.root.x = r.w / 2
   r.root.y = r.h / 2 - 80
-  r.force = d3.layout.force().on("tick", tick).charge(-200)
+  r.force = d3.layout.force().on("tick", tick)
+  .charge (d)->
+    if d.type=="referData" then -20 else -200
   .linkDistance (d)->
-     d.target.name.length*10+d.source.name.length*5
+    if d.target.type=="referData"
+      return 20 
+    d.target.name.length*10+d.source.name.length*5
   .size([r.w, r.h - 160])
   update()
 getLinkName= (source,target)->
   return "#{source.name}->#{target.name}"
 update = ->
   r.vis.selectAll(".node").remove()
-  # r.vis.selectAll(".link").remove()
   for x in r.nodes
     if not r.hNode[x.name]?
       r.hNode[x.name]=x
@@ -34,13 +37,15 @@ update = ->
   r.link = r.vis.selectAll(".link").data(r.links)
   .style "stroke-width", (d) ->
     if r.highlights.indexOf("l_"+d.name)>=0 then "2px" else "0.5px" 
+  .style "opacity", (d) ->
+    if r.highlights.indexOf("l_"+d.name)>=0 then 1.0 else 0.2
   
   # Enter any new links.
   r.link.enter()
   .insert("line", ".node")
   .attr("class","link")
-  .attr "stroke-width", (d) ->
-    if r.highlights.indexOf("l_"+d.name)>=0 then "2px" else "0.5px" 
+  .style("stroke-width", "1px")
+  .style("opacity","0.2")
 
   # Exit any old links.
   r.link.exit().remove()
@@ -55,22 +60,26 @@ update = ->
   r.node.append("circle")
   .attr("cx",0)
   .attr("cy",0)
+  .style "opacity", (d) ->
+    if r.highlights.indexOf("n_"+d.name)>=0 then 1 else .2
   .attr("r", getR)
   .style "stroke-width", (d) ->
-    if r.highlights.indexOf("n_"+d.name)>=0 then "2px" else "0.5px" 
-  .style("fill", color).transition().attr "r", getR
+    if r.highlights.indexOf("n_"+d.name)>=0 then "2px" else "1px" 
+  .style("fill", color)
+  .transition().attr "r", getR
+
   r.node.append("title")
     .text (d) ->
       d.name
   r.node.append("text")
-  .attr("class","notclickable")
-  .style "font-size", (d) ->
-    return "1em"
+  .attr("class","notclickable desc")
   .style "opacity", (d) ->
     if r.highlights.indexOf("n_"+d.name)>=0 then 1 else 0
   .attr "dx", (d) ->
     getR(d)
   .text (d) ->
+    if  d.type=="referData"
+      return ""
     d.name
 
   r.node.filter((d) ->
@@ -87,8 +96,8 @@ update = ->
 
   r.force.nodes(r.nodes).links(r.links).start()
 getR = (d) ->
-  if  d.type=="referData" or d.type=="expandRead"
-    return 2
+  if  d.type=="referData"
+    return 5
   return 15
   x = d.level
   x = 4  if x > 4
@@ -103,7 +112,6 @@ tick = ->
   ).attr("y2", (d) ->
     d.target.y
   )
-
   r.node.attr "transform", (d) ->
     "translate(" + d.x + "," + d.y + ")"
     
@@ -114,7 +122,7 @@ color = (d) ->
     return r.palette(i+1)
   return r.palette(0)
 click = (d) ->
-	if r.shiftPressed
+  if r.shiftPressed
     if d==r.root
       alert "不能删除根节点"
       r.shiftPressed=false
@@ -125,48 +133,52 @@ click = (d) ->
       name=x[2..]
       if type=="l"
         r.links.remove r.hLink[name]
-      else if name==d.name
+      else if name==d.name or r.hNode[name].type=="referData"
         r.nodes.remove r.hNode[name]
         blacklist.push name
-	else if r.altPressed
-		if d.children
-			d._children = d.children
-			d.children = null
-		else
-			d.children = d._children
-			d._children = null
-	else if r.ctrlPressed
-    if d.type=="expandRead" or d.type=="referData"
+  else if r.altPressed
+    save().done ->
+      window.open "/model/#{d.name}", "_self"
+    return
+  else if r.ctrlPressed
+    if d.type=="referData"
       window.open if d.url? then d.url else d.name
       return
     if d.isSelected? and d.isSelected==true
-    	d.isSelected= false
+      d.isSelected= false
     else 
-    	d.isSelected = true
+      d.isSelected = true
     if not d.isSelected
-    	return
+      return
     url= "/search/#{d.name}"
     d3.json url , (data) ->
-    	i=0
-    	source=r.hNode[d.name]
-    	if not source?
-    		return
-    	for x in data
-    		target=x
-    		if not r.hNode[x.name]?  and r.blacklist.indexOf(x.name)==-1
-    			r.nodes.push x
-    			i+=1
-    		else
-    			target=r.hNode[x.name]
-    		key= getLinkName source,target
-    		if not r.hLink[key]?			
-    			r.links.push {"source":source,"target":target,"value":1,"name":key}
-    		if i==5 then break
-    	d.isSelected= false
-    	update()
-	else
-		highlight d
-	update()
+      source=r.hNode[d.name]
+      if not source?
+        return
+      i=0
+      for x in data
+        if r.blacklist.indexOf(x.name)>=0 then continue
+        if x.type=="referData"
+          if not r.hNode[x.name]?
+            key= getLinkName source,x
+            r.nodes.push x
+            r.links.push {"source":source,"target":x,"name":key}
+        else 
+          target=x
+          if not r.hNode[x.name]?
+            if i==5 then continue
+            r.nodes.push x
+            i+=1
+          else
+            target=r.hNode[x.name]
+          key= getLinkName source,target
+          if not r.hLink[key]?
+            r.links.push {"source":source,"target":target, "name":key}
+      d.isSelected= false
+      update()
+  else
+    highlight d
+  update()
 highlight = (d)->
   r.highlights= []
   r.highlights.push "n_"+d.name
@@ -189,17 +201,19 @@ save = ->
       "name":x.name,
       "value":x.value,
       "index":x.index,
-      "type":x.type
+      "type":x.type,
+      "url":x.url,
   for x in r.links
     res.links.push
       "name":x.name,
       "source":x.source.index,
       "target":x.target.index,
-  res=JSON.stringify res
-  console.log res
-  jQuery.post "/model", res, (d)->
-    alert("保存完成")
-  ,"json"
+  res= JSON.stringify res
+  return $.ajax
+    "url":"/model",
+    "type": "POST",
+    "contentType": "json", 
+    "data": res
 r = exports ? this
 r.highlights=[]
 r.hNode={}
@@ -224,14 +238,20 @@ r.vis = d3.select("#container")
   .attr("height", r.h)
   .attr("viewBox","0 0 #{r.w} #{r.h}")
   .attr("pointer-events", "all")
-  .attr("stroke","black")
   .attr("preserveAspectRatio","XMidYMid")
   .append("svg:g")
   .call(d3.behavior.zoom()
   .on("zoom", redraw))
   .append("svg:g")
 $(document).ready ->
-  $("#btn_save").click save
+  $("#btn_tip").click ->
+    $("#tip").slideToggle 200
+  $("#btn_save").click ->
+    save()
+    .done ->
+      alert "保存完成"
+    .fail (d,e)->
+      alert e
   $.getJSON "/model/load/#{document.title}", (d)->
     if not d or d.error?
       draw {"nodes":[{"name":document.title}],"links":[]}
@@ -241,7 +261,6 @@ r.vis.append("svg:rect").attr("width", r.w).attr("height", r.h).attr "fill", "no
 r.palette= d3.scale.category10()
 r.colors =[
    "baiduBaikeCrawler",
-   "expandRead",
    "hudongBaikeCrawler",
    "referData"
 ]

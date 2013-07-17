@@ -19,29 +19,42 @@
 				stroke: #000;
 				stroke-width: 1px;
 			}
-			.tip{
-				margin-left:-120px;  
-				font-size:20px;
+			#tip{
+				margin-left: 6px;
 				display: none
 			}
+			#actions{
+				position: absolute;
+				display: inline;
+			}
 			.notclickable{
-				pointer-events:none
+				pointer-events:none;
+
+			}
+			.desc{
+				fill:black;
+				stroke:black;
+				stroke-width:.5px;
 			}
 			.spin {
 				width:150px;
 				height:150px;
 			}
+
 		</style>
 	</head>
 	<body>
-		<div id="tip" class="tip">
-			<p>点击 = 选中节点</p>
-			<p>ctrl+点击 = 添加一个孩子节点</p>
-			<p>shift+点击 = 删除当前节点</p>
-			<p>alt+点击 = 收缩/扩展节点</p>
-		</div>
-		<input type="button" id="btn_save" class="editbtn button" value="保存" >
 		<div id="container"/>
+		<div id="tip">
+			<p>点击 = 选中节点和相邻节点</p>
+			<p>ctrl+点击 = 扩展节点/访问知识链接</p>
+			<p>shift+点击 = 删除节点和知识</p>
+			<p>alt+点击 = 将当前节点变成中心节点</p>
+		</div>
+		<div id="actions">
+			<input type="button"  id="btn_save" class="editbtn button" value="保存" >
+			<input type="button"  id="btn_tip" class="editbtn button" value="?" >
+		</div>
 		<script src="/static/javascripts/forced_graph_view.js"></script>
 	</body>
 </html>

@@ -19,7 +19,16 @@ draw = function(json) {
   r.highlights.push("n_" + r.root.name);
   r.root.x = r.w / 2;
   r.root.y = r.h / 2 - 80;
-  r.force = d3.layout.force().on("tick", tick).charge(-200).linkDistance(function(d) {
+  r.force = d3.layout.force().on("tick", tick).charge(function(d) {
+    if (d.type === "referData") {
+      return -20;
+    } else {
+      return -200;
+    }
+  }).linkDistance(function(d) {
+    if (d.target.type === "referData") {
+      return 20;
+    }
     return d.target.name.length * 10 + d.source.name.length * 5;
   }).size([r.w, r.h - 160]);
   return update();
@@ -55,29 +64,33 @@ update = function() {
     } else {
       return "0.5px";
     }
-  });
-  r.link.enter().insert("line", ".node").attr("class", "link").attr("stroke-width", function(d) {
+  }).style("opacity", function(d) {
     if (r.highlights.indexOf("l_" + d.name) >= 0) {
-      return "2px";
+      return 1.0;
     } else {
-      return "0.5px";
+      return 0.2;
     }
   });
+  r.link.enter().insert("line", ".node").attr("class", "link").style("stroke-width", "1px").style("opacity", "0.2");
   r.link.exit().remove();
   r.node = r.vis.selectAll(".node").data(r.nodes).enter().append("g").attr("class", "node").call(r.force.drag).on("click", click);
-  r.node.append("circle").attr("cx", 0).attr("cy", 0).attr("r", getR).style("stroke-width", function(d) {
+  r.node.append("circle").attr("cx", 0).attr("cy", 0).style("opacity", function(d) {
+    if (r.highlights.indexOf("n_" + d.name) >= 0) {
+      return 1;
+    } else {
+      return .2;
+    }
+  }).attr("r", getR).style("stroke-width", function(d) {
     if (r.highlights.indexOf("n_" + d.name) >= 0) {
       return "2px";
     } else {
-      return "0.5px";
+      return "1px";
     }
   }).style("fill", color).transition().attr("r", getR);
   r.node.append("title").text(function(d) {
     return d.name;
   });
-  r.node.append("text").attr("class", "notclickable").style("font-size", function(d) {
-    return "1em";
-  }).style("opacity", function(d) {
+  r.node.append("text").attr("class", "notclickable desc").style("opacity", function(d) {
     if (r.highlights.indexOf("n_" + d.name) >= 0) {
       return 1;
     } else {
@@ -86,6 +99,9 @@ update = function() {
   }).attr("dx", function(d) {
     return getR(d);
   }).text(function(d) {
+    if (d.type === "referData") {
+      return "";
+    }
     return d.name;
   });
   r.node.filter(function(d) {
@@ -104,8 +120,8 @@ update = function() {
 
 getR = function(d) {
   var x;
-  if (d.type === "referData" || d.type === "expandRead") {
-    return 2;
+  if (d.type === "referData") {
+    return 5;
   }
   return 15;
   x = d.level;
@@ -155,21 +171,18 @@ click = function(d) {
       name = x.slice(2);
       if (type === "l") {
         r.links.remove(r.hLink[name]);
-      } else if (name === d.name) {
+      } else if (name === d.name || r.hNode[name].type === "referData") {
         r.nodes.remove(r.hNode[name]);
         blacklist.push(name);
       }
     }
   } else if (r.altPressed) {
-    if (d.children) {
-      d._children = d.children;
-      d.children = null;
-    } else {
-      d.children = d._children;
-      d._children = null;
-    }
+    save().done(function() {
+      return window.open("/model/" + d.name, "_self");
+    });
+    return;
   } else if (r.ctrlPressed) {
-    if (d.type === "expandRead" || d.type === "referData") {
+    if (d.type === "referData") {
       window.open(d.url != null ? d.url : d.name);
       return;
     }
@@ -184,31 +197,45 @@ click = function(d) {
     url = "/search/" + d.name;
     d3.json(url, function(data) {
       var i, key, source, target, _j, _len1;
-      i = 0;
       source = r.hNode[d.name];
       if (!(source != null)) {
         return;
       }
+      i = 0;
       for (_j = 0, _len1 = data.length; _j < _len1; _j++) {
         x = data[_j];
-        target = x;
-        if (!(r.hNode[x.name] != null) && r.blacklist.indexOf(x.name) === -1) {
-          r.nodes.push(x);
-          i += 1;
+        if (r.blacklist.indexOf(x.name) >= 0) {
+          continue;
+        }
+        if (x.type === "referData") {
+          if (!(r.hNode[x.name] != null)) {
+            key = getLinkName(source, x);
+            r.nodes.push(x);
+            r.links.push({
+              "source": source,
+              "target": x,
+              "name": key
+            });
+          }
         } else {
-          target = r.hNode[x.name];
-        }
-        key = getLinkName(source, target);
-        if (!(r.hLink[key] != null)) {
-          r.links.push({
-            "source": source,
-            "target": target,
-            "value": 1,
-            "name": key
-          });
-        }
-        if (i === 5) {
-          break;
+          target = x;
+          if (!(r.hNode[x.name] != null)) {
+            if (i === 5) {
+              continue;
+            }
+            r.nodes.push(x);
+            i += 1;
+          } else {
+            target = r.hNode[x.name];
+          }
+          key = getLinkName(source, target);
+          if (!(r.hLink[key] != null)) {
+            r.links.push({
+              "source": source,
+              "target": target,
+              "name": key
+            });
+          }
         }
       }
       d.isSelected = false;
@@ -255,7 +282,8 @@ save = function() {
       "name": x.name,
       "value": x.value,
       "index": x.index,
-      "type": x.type
+      "type": x.type,
+      "url": x.url
     });
   }
   _ref1 = r.links;
@@ -268,10 +296,12 @@ save = function() {
     });
   }
   res = JSON.stringify(res);
-  console.log(res);
-  return jQuery.post("/model", res, function(d) {
-    return alert("保存完成");
-  }, "json");
+  return $.ajax({
+    "url": "/model",
+    "type": "POST",
+    "contentType": "json",
+    "data": res
+  });
 };
 
 r = typeof exports !== "undefined" && exports !== null ? exports : this;
@@ -308,10 +338,19 @@ document.onkeydown = cacheIt;
 
 document.onkeyup = cacheIt;
 
-r.vis = d3.select("#container").append("svg:svg").attr("width", r.w).attr("height", r.h).attr("viewBox", "0 0 " + r.w + " " + r.h).attr("pointer-events", "all").attr("stroke", "black").attr("preserveAspectRatio", "XMidYMid").append("svg:g").call(d3.behavior.zoom().on("zoom", redraw)).append("svg:g");
+r.vis = d3.select("#container").append("svg:svg").attr("width", r.w).attr("height", r.h).attr("viewBox", "0 0 " + r.w + " " + r.h).attr("pointer-events", "all").attr("preserveAspectRatio", "XMidYMid").append("svg:g").call(d3.behavior.zoom().on("zoom", redraw)).append("svg:g");
 
 $(document).ready(function() {
-  $("#btn_save").click(save);
+  $("#btn_tip").click(function() {
+    return $("#tip").slideToggle(200);
+  });
+  $("#btn_save").click(function() {
+    return save().done(function() {
+      return alert("保存完成");
+    }).fail(function(d, e) {
+      return alert(e);
+    });
+  });
   return $.getJSON("/model/load/" + document.title, function(d) {
     if (!d || (d.error != null)) {
       return draw({
@@ -332,4 +371,4 @@ r.vis.append("svg:rect").attr("width", r.w).attr("height", r.h).attr("fill", "no
 
 r.palette = d3.scale.category10();
 
-r.colors = ["baiduBaikeCrawler", "expandRead", "hudongBaikeCrawler", "referData"];
+r.colors = ["baiduBaikeCrawler", "hudongBaikeCrawler", "referData"];
